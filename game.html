@@ -11,7 +11,10 @@
     <script>
         const PADDLE_WIDTH = 100,
           PADDLE_THICKNESS = 10,
-          PADDLE_DISTANCE_FROM_EDGE = 60;
+          PADDLE_DISTANCE_FROM_EDGE = 60,
+          BRICK_W = 100,
+          BRICK_H = 50,
+          BRICK_COUNT = 8;
         let canvas,
           canvasContext,
           ballX = 75,
@@ -20,7 +23,8 @@
           ballSpeedY = 7,
           paddleX = 400,
           mouseX,
-          mouseY;
+          mouseY,
+          brickGrid = new Array(BRICK_COUNT);
 
         window.addEventListener('load', function load() {
           canvas = document.getElementById('gameCanvas');
@@ -30,11 +34,19 @@
           setInterval(updateAll, 1000/framesPerSecond);
 
           canvas.addEventListener('mousemove', updateMousePos);
+
+          brickReset();
         });
 
         function updateAll() {
           update();
           render();
+        }
+
+        function brickReset() {
+          for (let i = 0; i < BRICK_COUNT; i++) {
+            brickGrid[i] = Math.random() < 0.5;
+          }
         }
 
         function updateMousePos(event) {
@@ -81,7 +93,15 @@
 
           colourRect(paddleX, canvas.height - PADDLE_DISTANCE_FROM_EDGE, PADDLE_WIDTH, PADDLE_THICKNESS, 'white');
 
+          drawBricks();
+
           drawDebugInfo();
+        }
+
+        function drawBricks() {
+          for (let i = 0; i < BRICK_COUNT; i++) {
+            if (brickGrid[i]) colourRect(BRICK_W * i, 0, BRICK_W - 2, BRICK_H, 'blue');
+          }
         }
 
         function drawDebugInfo() {
