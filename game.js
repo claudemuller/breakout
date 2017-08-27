@@ -1,4 +1,6 @@
 (function () {
+  'use strict';
+  
   const PADDLE_WIDTH = 100,
     PADDLE_THICKNESS = 10,
     PADDLE_DISTANCE_FROM_EDGE = 60,
