@@ -12,11 +12,11 @@
         const PADDLE_WIDTH = 100,
           PADDLE_THICKNESS = 10,
           PADDLE_DISTANCE_FROM_EDGE = 60,
-          BRICK_W = 100,
-          BRICK_H = 50,
-          BRICK_COLS = 8,
+          BRICK_W = 80,
+          BRICK_H = 20,
+          BRICK_COLS = 10,
           BRICK_GAP = 2,
-          BRICK_ROWS = 4;
+          BRICK_ROWS = 14;
         let canvas,
           canvasContext,
           ballX = 75,
@@ -26,7 +26,7 @@
           paddleX = 400,
           mouseX,
           mouseY,
-          brickGrid = new Array(BRICK_COLS);
+          brickGrid = new Array(BRICK_COLS * BRICK_ROWS);
 
         window.addEventListener('load', function load() {
           canvas = document.getElementById('gameCanvas');
@@ -46,8 +46,7 @@
         }
 
         function brickReset() {
-          for (let i = 0; i < BRICK_COLS; i++) {
-//            brickGrid[i] = Math.random() < 0.5;
+          for (let i = 0; i < BRICK_COLS * BRICK_ROWS; i++) {
             brickGrid[i] = true;
           }
         }
@@ -67,18 +66,34 @@
           ballY = canvas.height / 2;
         }
 
-        function update() {
-          const paddleTopEdgeY = canvas.height - PADDLE_DISTANCE_FROM_EDGE,
-            paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS,
-            paddleLeftEdgeX = paddleX,
-            paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
-
+        function ballMove() {
           ballX += ballSpeedX;
           ballY += ballSpeedY;
 
           if (ballX > canvas.width || ballX < 0) ballSpeedX *= -1;
           if (ballY < 0) ballSpeedY *= -1;
           if (ballY > canvas.height) ballReset();
+        }
+
+        function update() {
+          const paddleTopEdgeY = canvas.height - PADDLE_DISTANCE_FROM_EDGE,
+            paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS,
+            paddleLeftEdgeX = paddleX,
+            paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+
+          ballMove();
+
+          const ballBrickCol = Math.floor(ballX / BRICK_W),
+            ballBrickRow = Math.floor(ballY / BRICK_H),
+            brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow);
+          if (ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
+            ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) {
+            if (brickGrid[brickIndexUnderBall]) {
+              brickGrid[brickIndexUnderBall] = false;
+              ballSpeedY *= -1;
+            }
+          }
+
           if (ballY > paddleTopEdgeY && ballY < paddleBottomEdgeY &&
             ballX > paddleLeftEdgeX && ballX < paddleRightEdgeX) {
             const centerOfPaddleX = paddleX + PADDLE_WIDTH / 2,
@@ -102,18 +117,25 @@
         }
 
         function drawBricks() {
-          for (let j = 0; j < BRICK_ROWS; j++) {
-            for (let i = 0; i < BRICK_COLS; i++) {
-              if (brickGrid[i]) colourRect(BRICK_W * i, BRICK_H * j, BRICK_W - BRICK_GAP, BRICK_H - BRICK_GAP, 'blue');
+          for (let row = 0; row < BRICK_ROWS; row++) {
+            for (let col = 0; col < BRICK_COLS; col++) {
+              const arrayIndex = rowColToArrayIndex(col, row);
+
+              if (brickGrid[arrayIndex]) colourRect(BRICK_W * col, BRICK_H * row, BRICK_W - BRICK_GAP, BRICK_H - BRICK_GAP, 'blue');
             }
           }
+        }
+
+        function rowColToArrayIndex(col, row) {
+          return col + BRICK_COLS * row;
         }
 
         function drawDebugInfo() {
           const xThreshold = 40,
             yThreshold = 15,
-            mouseBrickCol = mouseX / BRICK_W,
-            mouseBrickRow = mouseY / BRICK_H;
+            mouseBrickCol = Math.floor(mouseX / BRICK_W),
+            mouseBrickRow = Math.floor(mouseY / BRICK_H),
+            brickIndexUnderMouse = rowColToArrayIndex(mouseBrickCol, mouseBrickRow);
 
           let x = mouseX,
             y = mouseY;
@@ -124,7 +146,7 @@
             x = mouseX + yThreshold;
           }
 
-          colourText(`${mouseBrickCol},${mouseBrickRow}`, x, y, 'yellow');
+          colourText(`${mouseBrickCol},${mouseBrickRow}:${brickIndexUnderMouse}`, x, y, 'yellow');
         }
 
         function colourRect(x, y, width, height, colour) {
