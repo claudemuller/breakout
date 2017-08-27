@@ -1,2 +1,2 @@
-# brix
-A brix clone written in JavaScript
+# Breakout
+A breakout clone written in JavaScript
